@@ -1,0 +1,28 @@
+<project name="consolr" default="default">
+
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+
+    <target name="postclean">
+        <delete dir="bin"/>
+    </target>
+
+    <target name="build" depends="clean">
+        <mkdir dir="bin"/>
+        <javac
+                srcdir="src"
+                destdir="bin"
+                debug="true"
+                >
+            <include name="**/*.java"/>
+        </javac>
+    </target>
+
+    <target name="jar" depends="build">
+        <jar basedir="bin" destfile="jConsol.jar"/>
+    </target>
+
+    <target name="default" depends="jar, postclean"/>
+
+</project>
