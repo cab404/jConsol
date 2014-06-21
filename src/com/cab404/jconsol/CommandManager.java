@@ -73,10 +73,10 @@ public class CommandManager {
         for (int i = 0; i < toSplit.length(); i++)
             if (toSplit.charAt(i) == '\"')
                 count++;
-        if (count % 2 != 0) throw new RuntimeException("Non-enclosed paresis found!");
+        if (count % 2 != 0) throw new RuntimeException("Non-enclosed quotes found!");
 
 
-        /* Specifies whether we currently parsing quot-enclosed statement */
+        /* Specifies whether we currently parsing quote-enclosed statement */
         boolean apos = false;
         ArrayList<String> data = new ArrayList<>();
 
@@ -85,7 +85,8 @@ public class CommandManager {
             switch (toSplit.charAt(index)) {
                 case ' ':
                     if (!apos) {
-                        toAdd = toSplit.substring(li, index);
+                        toAdd = toSplit.substring(li, index).trim();
+                        if (toAdd.isEmpty()) toAdd = null;
                         li = index + 1;
                     }
                     break;
@@ -100,7 +101,7 @@ public class CommandManager {
                     break;
             }
 
-            if (toAdd != null && !(toAdd = toAdd.trim()).isEmpty())
+            if (toAdd != null)
                 data.add(toAdd.replace("\ufffc\uab40\u4fff", "\""));
 
             index++;
@@ -127,7 +128,7 @@ public class CommandManager {
 
         if (parts.isEmpty()) return;
 
-        /* Searching for command namespace */
+        /* Searching for command prefix */
         ArrayMap<String, CommandHolder> commands = null;
         if (data.containsKey(parts.get(0))) {
             commands = data.get(parts.get(0));

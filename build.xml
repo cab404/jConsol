@@ -10,6 +10,7 @@
 
     <target name="build" depends="clean">
         <mkdir dir="bin"/>
+        <copy file="LICENSE.md" todir="bin/META-INF"/>
         <javac
                 srcdir="src"
                 destdir="bin"
