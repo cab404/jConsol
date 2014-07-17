@@ -32,7 +32,7 @@ Add it to your command manager:
 
 ```java
 CommandManager man = new CommandManager();
-man.registerCommandClass(Math.class);
+man.register(Math.class);
 ```
 
 And feed it with commands:

@@ -16,18 +16,26 @@ import java.util.List;
  */
 public class CommandManager {
 
-    HashMap<String, ArrayMap<String, CommandHolder>> data;
+    private HashMap<String, ArrayMap<String, CommandHolder>> data;
 
-    public void registerCommandClass(Class<?> clazz) {
+    public CommandManager() {
+        data = new HashMap<>();
+    }
+
+    public void register(Class<?> clazz) {
         try {
             CommandClass annotation = clazz.getAnnotation(CommandClass.class);
 
             if (annotation != null) {
+
                 // Ensures what we have registered storage cell.
-                ArrayMap<String, CommandHolder> clazz_data =
-                        data.containsKey(annotation.prefix()) ?
-                                data.get(annotation.prefix()) : new ArrayMap<String, CommandHolder>();
-                data.put(annotation.prefix().toLowerCase(), clazz_data);
+                ArrayMap<String, CommandHolder> clazz_data;
+                if (data.containsKey(annotation.prefix().toLowerCase())) {
+                    clazz_data = data.get(annotation.prefix().toLowerCase());
+                } else {
+                    clazz_data = new ArrayMap<>();
+                    data.put(annotation.prefix().toLowerCase(), clazz_data);
+                }
 
                 // Creating new instance for running commands.
                 Object obj = clazz.getConstructor().newInstance();
@@ -37,26 +45,20 @@ public class CommandManager {
 
                     if (command != null) {
 
-                        CommandHolder holder = new CommandHolder();
+                        CommandHolder holder = new CommandHolder(m, obj, annotation.prefix(), command);
 
-                        holder.annnotation = command;
-                        holder.object = obj;
-                        holder.method = m;
-
-                        clazz_data.put(command.command().toLowerCase(), holder);
+                        clazz_data.add(command.command().toLowerCase(), holder);
 
                     }
                 }
             }
 
+            System.out.println(data);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public CommandManager() {
-        data = new HashMap<>();
-    }
 
     /**
      * Splits command to String array.
@@ -128,7 +130,6 @@ public class CommandManager {
 
         if (parts.isEmpty()) return;
 
-        /* Searching for command prefix */
         ArrayMap<String, CommandHolder> commands = null;
         if (data.containsKey(parts.get(0))) {
             commands = data.get(parts.get(0));
@@ -142,21 +143,20 @@ public class CommandManager {
 
         /* Searching for command */
         try {
+
             Object[] parameters = new Object[parts.size() - 2];
 
             search:
             for (CommandHolder holder : commands.getValues(parts.get(1))) {
                 Class<? extends ParameterConverter>[] params = holder.annnotation.params();
-
                 if (params.length == parts.size() - 2) {
 
                     for (int i = 0; i < params.length; i++) {
                         ParameterConverter conv = getConverter(params[i]);
 
-                        if (conv.isInstance(parts.get(i + 2))) {
+                        if (conv.isInstance(parts.get(i + 2)))
                             parameters[i] = conv.convert(parts.get(i + 2));
-                        } else
-                            continue search;
+                        else continue search;
 
                     }
 
@@ -174,5 +174,13 @@ public class CommandManager {
 
     }
 
+    public List<CommandHolder> registered() {
+        ArrayList<CommandHolder> out = new ArrayList<>();
+        for (ArrayMap<String, CommandHolder> am : data.values()) {
+            for (CommandHolder holder : am.values())
+                out.add(holder);
+        }
+        return out;
+    }
 
 }
